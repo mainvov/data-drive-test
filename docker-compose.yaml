@@ -1,0 +1,79 @@
+version: "3"
+
+services:
+
+  api-gateway:
+    image: "api-gateway:${NODE_ENV:-prod}"
+    container_name: "api-gateway-${NODE_ENV:-prod}"
+    build:
+      context: "./api-gateway"
+    volumes:
+      - "./api-gateway:/var/www/app/"
+    ports:
+      - ${API_GATEWAY_PORT}:${API_GATEWAY_PORT}
+    depends_on:
+      - "cart-manage"
+      - "cart-view"
+    env_file:
+      - .env
+    restart: "on-failure"
+
+  cart-manage:
+    image: "cart-manage:${NODE_ENV:-prod}"
+    container_name: "cart-manage-${NODE_ENV:-prod}"
+    build:
+      context: "./microservices/cart-manage"
+    volumes:
+      - "./microservices/cart-manage:/var/www/app/"
+    depends_on:
+      - "postgres"
+    env_file:
+      - .env
+    restart: "on-failure"
+
+  cart-view:
+    image: "cart-view:${NODE_ENV:-prod}"
+    container_name: "cart-view-${NODE_ENV:-prod}"
+    build:
+      context: "./microservices/cart-view"
+    volumes:
+      - "./microservices/cart-view:/var/www/app/"
+    depends_on:
+      - "postgres"
+    env_file:
+      - .env
+    restart: "on-failure"
+
+  postgres:
+    container_name: postgres
+    image: postgres:12
+    env_file:
+      - .env
+    environment:
+      PG_DATA: /var/lib/postgresql/data
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    volumes:
+      - "./database/data:/var/lib/postgresql/data"
+    restart: always
+
+
+#  swagger-ui:
+#    image: "swaggerapi/swagger-ui"
+#    networks:
+#      - "frontend"
+#    ports:
+#      - "8080:8080"
+#    volumes:
+#      - "./docs/openapi-spec.yaml:/usr/share/spec/openapi-spec.yaml"
+#    environment:
+#      SWAGGER_JSON: "/usr/share/spec/openapi-spec.yaml"
+#    healthcheck:
+#      test: ["CMD", "wget", "localhost:8080 -q -O - > /dev/null 2>&1"]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 5
+#
+
+networks:
+  frontend:

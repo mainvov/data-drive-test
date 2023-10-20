@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package cart_view;
+
+message CartGetAllRequest { }
+
+message CartItem {
+  int32 id = 1;
+  string name = 2;
+  double price = 3;
+}
+
+message CartAllItemsResponse {
+  repeated CartItem items = 1;
+}
+
+service CartViewService {
+  rpc GetAllItems (CartGetAllRequest) returns (CartAllItemsResponse) {}
+}
